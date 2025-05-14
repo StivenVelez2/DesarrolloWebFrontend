@@ -9,13 +9,23 @@ export const APP_ROUTE: Route[] = [
     canActivate: [AuthGuard],
     children: [
       {
+
+        // esta es la ruta de la página principal
         path: 'dashboard',
         loadChildren: () =>
           import('./dashboard/dashboard.routes').then((m) => m.DASHBOARD_ROUTE),
       },
+      {
+
+        // esta es la ruta de los usuarios
+        path: 'page',
+        loadChildren: () =>
+          import('./pages/pages.routes').then((m) => m.PAGES_ROUTE),
+      },
     ],
   },
   {
+    // esta es la ruta de la página de inicio
     path: 'authentication',
     loadChildren: () =>
       import('./authentication/auth.routes').then((m) => m.AUTH_ROUTE),
