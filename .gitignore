@@ -7,6 +7,13 @@
 # Only exists if Bazel was run
 /bazel-out
 
+/src/app/pages/modal-assign-users-project/
+/src/app/pages/modal-create-project/
+/src/app/pages/projects/
+/src/app/pages/projects-detail/
+/src/app/services/projects/
+
+
 # cache
 /.angular
 
