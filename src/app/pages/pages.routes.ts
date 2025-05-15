@@ -1,7 +1,7 @@
 import { Route } from '@angular/router';
 import { UsersComponent } from './users/users/users.component';
 import { ProjectsComponent } from './projects/projects.component';
-import { ProjectDetailComponent } from 'app/pages/projects-detail/projects-detail.component';
+import { ProjectsDetailComponent } from 'app/pages/projects-detail/projects-detail.component'
 import { AdminGuard } from '@core/guard/admin.guard';
 
 //este archivo contiene las rutas de la aplicación
@@ -13,7 +13,7 @@ export const PAGES_ROUTE: Route[] = [
     component: UsersComponent,
     canActivate: [AdminGuard]
   },
-  /*{
+  {
     //esta es la ruta de los proyectos
     path: 'projects',
     component: ProjectsComponent
@@ -21,6 +21,6 @@ export const PAGES_ROUTE: Route[] = [
   {
     //esta es la ruta de los detalles de los proyectos
     path: 'projects/detail/:id',
-    component: ProjectDetailComponent
-  }*/
+    component: ProjectsDetailComponent
+  }
 ];
