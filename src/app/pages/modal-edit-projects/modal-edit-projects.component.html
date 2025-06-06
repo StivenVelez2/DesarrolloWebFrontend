@@ -1,7 +1,7 @@
 <div class="col-lg-12 col-md-12 col-sm-12">
-  <h2 mat-dialog-title>Creación de proyectos</h2>
+  <h2 mat-dialog-title>Actualización de proyectos</h2>
   <div mat-dialog-content>
-    <form [formGroup]="formCreateProject">
+    <form [formGroup]="formUpdateProjects">
       <div class="col-lg-12 col-md-12 col-sm-12 custom-margin mt-4">
         <div class="row">
           <div class="col-lg-12 col-md-6 col-sm-6">
@@ -25,7 +25,7 @@
               <mat-label>Administrador</mat-label>
               <mat-select formControlName="administrador_id" class="w-100">
                 <mat-option value="">Seleccionar</mat-option>
-                <mat-option *ngFor="let admin of administratorsValue" [value]="admin.id">
+                <mat-option *ngFor="let admin of administratorsValues" [value]="admin.id">
                   {{ admin.nombre }}
                 </mat-option>
               </mat-select>
@@ -37,6 +37,6 @@
   </div>
   <mat-dialog-actions align="end">
     <button mat-button mat-dialog-close>Cancelar</button>
-    <button mat-button cdkFocusInitial [disabled]="!formCreateProject.valid" (click)="onSubmit()">Crear</button>
+    <button mat-button cdkFocusInitial (click)="updateProject()" [disabled]="formUpdateProjects.invalid">Actualizar</button>
   </mat-dialog-actions>
 </div>

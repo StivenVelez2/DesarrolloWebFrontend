@@ -20,7 +20,7 @@ import { ModalCreateUserComponent } from 'app/pages/modal-create-user/modal-crea
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ModalEditUsersComponent } from 'app/pages/modal-edit-users/modal-edit-users.component';
 import { debounceTime, distinctUntilChanged, max } from 'rxjs';
-import { duration } from 'moment';
+
 
 export interface User {
   name: string;

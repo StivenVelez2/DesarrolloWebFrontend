@@ -2,145 +2,142 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import {
-  MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent,
-  MatDialogModule, MatDialogRef, MatDialogTitle
+  MAT_DIALOG_DATA, MatDialogRef, MatDialogModule
 } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatIconModule } from '@angular/material/icon';
 import { ProjectsService } from 'app/services/projects/projects.service';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-modal-create-project',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, MatDialogModule, MatButtonModule, MatSelectModule,
-    MatIconModule, MatFormFieldModule, MatInputModule, MatDialogActions,
-    MatDialogClose, MatDialogTitle, MatDialogContent, ReactiveFormsModule
+    CommonModule, FormsModule, ReactiveFormsModule,
+    MatDialogModule, MatButtonModule, MatFormFieldModule, MatInputModule,
+    MatSelectModule, MatIconModule
   ],
   templateUrl: './modal-create-project.component.html',
   styleUrls: ['./modal-create-project.component.scss']
 })
 export class ModalCreateProjectComponent implements OnInit {
-
   formCreateProject!: FormGroup;
-  administratorsValue: any[] = [];
-  showFieldAdministrator: boolean = false;
   isEditMode: boolean = false;
+  showFieldAdministrator: boolean = false;
+  administratorsValue: any[] = [];
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
+    private readonly _dialogRef: MatDialogRef<ModalCreateProjectComponent>,
     private readonly _formBuilder: FormBuilder,
     private readonly _projectService: ProjectsService,
-    private readonly _dialogRef: MatDialogRef<ModalCreateProjectComponent>,
-    private readonly _snackBar: MatSnackBar,
+    private readonly _snackBar: MatSnackBar
   ) {
-    this.createFormProject();
+    this.createFormProjects();
   }
 
   ngOnInit(): void {
     this.getAllAdministrators();
 
-    if (this.data?.project) {
+    if (this.data?.isEditMode) {
       this.isEditMode = true;
-      const project = this.data.project;
-
-      this.formCreateProject.patchValue({
-        nombre: project.nombre,
-        descripcion: project.descripcion,
-        rol_id: project.rol_id,
-        administrador_id: project.administrador_id
-      });
-
-      if (project.rol_id !== 1) {
-        this.showAdministratorField();
-      } else {
-        this.hideAdministratorField();
-      }
+      this.loadProjectData(this.data);
     }
   }
 
-  createFormProject(): void {
+  createFormProjects(): void {
     this.formCreateProject = this._formBuilder.group({
       nombre: ['', Validators.required],
       descripcion: ['', Validators.required],
-      rol_id: ['', Validators.required],
       administrador_id: [undefined]
     });
+  }
+
+  loadProjectData(data: any): void {
+    this.formCreateProject.patchValue({
+      nombre: data.nombre,
+      descripcion: data.descripcion,
+      administrador_id: data.administrador_id
+    });
+
+    if (data.rol_id !== 1) {
+      this.showAdministratorField();
+    } else {
+      this.hideAdministratorField();
+    }
   }
 
   getAllAdministrators(): void {
     this._projectService.getAllAdministrators().subscribe({
       next: (res) => {
-        this.administratorsValue = res.administrators;
+        this.administratorsValue = res.users || [];
       },
-      error: (err) => {
-        console.error(err);
+      error: () => {
+        this._snackBar.open('Error al cargar los administradores', 'Cerrar', { duration: 3000 });
       }
     });
   }
 
   onChangeRole(event: any): void {
-    if (event.value === '1') {
+    const selectedRole = Number(event.value);
+    if (selectedRole === 1) {
       this.hideAdministratorField();
     } else {
       this.showAdministratorField();
     }
   }
 
-  onSubmit(): void {
-    if (this.formCreateProject.invalid) {
-      Swal.fire('Error', 'Por favor completa todos los campos', 'error');
-      return;
-    }
-
-    const projectData = {
-      nombre: this.formCreateProject.get('nombre')?.value,
-      descripcion: this.formCreateProject.get('descripcion')?.value,
-      rol_id: Number(this.formCreateProject.get('rol_id')?.value),
-      administrador_id: this.formCreateProject.get('administrador_id')?.value
-    };
-
-    if (this.isEditMode) {
-      this._projectService.updateProject(this.data.project.id, projectData).subscribe({
-        next: (response) => {
-          this._snackBar.open(response.message || 'Proyecto actualizado exitosamente', 'Cerrar', { duration: 5000 });
-          this._dialogRef.close(true);
-        },
-        error: (error) => {
-          const errorMessage = error.error?.result || 'Ocurrió un error al actualizar el proyecto.';
-          this._snackBar.open(errorMessage, 'Cerrar', { duration: 5000 });
-        }
-      });
-    } else {
-      this._projectService.createProject(projectData).subscribe({
-        next: (response) => {
-          this._snackBar.open(response.message || 'Proyecto creado exitosamente', 'Cerrar', { duration: 5000 });
-          this.formCreateProject.reset();
-          this._dialogRef.close(true);
-        },
-        error: (error) => {
-          const errorMessage = error.error?.result || 'Ocurrió un error al crear el proyecto.';
-          this._snackBar.open(errorMessage, 'Cerrar', { duration: 5000 });
-        }
-      });
-    }
-  }
-
   private showAdministratorField(): void {
     this.showFieldAdministrator = true;
-    this.formCreateProject.get('administrador_id')?.setValidators([Validators.required]);
-    this.formCreateProject.get('administrador_id')?.updateValueAndValidity();
+    const adminControl = this.formCreateProject.get('administrador_id');
+    adminControl?.setValidators(Validators.required);
+    adminControl?.updateValueAndValidity();
   }
 
   private hideAdministratorField(): void {
     this.showFieldAdministrator = false;
-    this.formCreateProject.get('administrador_id')?.clearValidators();
-    this.formCreateProject.get('administrador_id')?.setValue(undefined);
-    this.formCreateProject.get('administrador_id')?.updateValueAndValidity();
+    const adminControl = this.formCreateProject.get('administrador_id');
+    adminControl?.clearValidators();
+    adminControl?.setValue(undefined);
+    adminControl?.updateValueAndValidity();
+  }
+
+  onSubmit(): void {
+    if (this.formCreateProject.invalid) {
+      Swal.fire('Error', 'Por favor completa todos los campos requeridos.', 'error');
+      return;
+    }
+
+    const projectData = {
+      nombre: this.formCreateProject.value.nombre,
+      descripcion: this.formCreateProject.value.descripcion,
+      administrador_id: this.formCreateProject.value.administrador_id
+    };
+
+    if (this.isEditMode) {
+      this._projectService.updateProject(this.data.id, projectData).subscribe({
+        next: (res) => {
+          this._snackBar.open(res.message || 'Proyecto actualizado correctamente.', 'Cerrar', { duration: 3000 });
+          this._dialogRef.close(true);
+        },
+        error: () => {
+          this._snackBar.open('Error al actualizar el proyecto.', 'Cerrar', { duration: 3000 });
+        }
+      });
+    } else {
+      this._projectService.createProject(projectData).subscribe({
+        next: (res) => {
+          this._snackBar.open(res.message || 'Proyecto creado correctamente.', 'Cerrar', { duration: 3000 });
+          this._dialogRef.close(true);
+        },
+        error: () => {
+          this._snackBar.open('Error al crear el proyecto.', 'Cerrar', { duration: 3000 });
+        }
+      });
+    }
   }
 }

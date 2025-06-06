@@ -1,20 +1,58 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  AfterViewInit
+} from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProjectsService } from 'app/services/projects/projects.service';
-import { MatTableDataSource } from '@angular/material/table';
-import { MatPaginator } from '@angular/material/paginator';
-import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+
+interface Project {
+  id: number;
+  name: string;
+  description: string;
+  administrator: { name: string };
+  created_at: string;
+}
+
+interface ProjectUser {
+  id: number;
+  name: string;
+  email: string;
+}
 
 @Component({
   selector: 'app-project-detail',
+  standalone: true,
   templateUrl: './projects-detail.component.html',
-  styleUrls: ['./projects-detail.component.scss']
+  styleUrls: ['./projects-detail.component.scss'],
+  imports: [
+    CommonModule,
+    MatTableModule,
+    MatPaginatorModule,
+    MatDialogModule,
+    MatSnackBarModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTooltipModule,
+    RouterModule,
+    FormsModule,
+  ],
 })
-export class ProjectDetailComponent implements OnInit {
+export class ProjectDetailComponent implements OnInit, AfterViewInit {
   projectId!: number;
-  project: any;
-  dataSource = new MatTableDataSource<any>([]);
+  project!: Project;
+  dataSource = new MatTableDataSource<ProjectUser>([]);
   displayedColumns: string[] = ['name', 'email', 'action'];
   isLoading = false;
 
@@ -30,7 +68,18 @@ export class ProjectDetailComponent implements OnInit {
 
   ngOnInit(): void {
     this.projectId = Number(this.route.snapshot.paramMap.get('id'));
+
+    if (isNaN(this.projectId)) {
+      this.snackBar.open('ID de proyecto inválido', 'Cerrar', { duration: 3000 });
+      this.router.navigate(['/page/projects']);
+      return;
+    }
+
     this.loadProjectDetails();
+  }
+
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
   }
 
   loadProjectDetails(): void {
@@ -38,7 +87,7 @@ export class ProjectDetailComponent implements OnInit {
 
     this.projectsService.getProjectById(this.projectId).subscribe({
       next: (res) => {
-        this.project = res;
+        this.project = res ?? {} as Project;
       },
       error: () => {
         this.snackBar.open('Error al cargar el proyecto', 'Cerrar', { duration: 3000 });
@@ -46,10 +95,9 @@ export class ProjectDetailComponent implements OnInit {
       }
     });
 
-    this.projectsService.getUsersByProject(this.projectId).subscribe({
+    this.projectsService.getProjectById(this.projectId).subscribe({
       next: (res) => {
-        this.dataSource = new MatTableDataSource<any>(res);
-        this.dataSource.paginator = this.paginator;
+        this.dataSource.data = res;
         this.isLoading = false;
       },
       error: () => {
@@ -74,8 +122,6 @@ export class ProjectDetailComponent implements OnInit {
   }
 
   openAssignUserDialog(): void {
-    // Aquí puedes usar un diálogo si lo tienes implementado
-    // Ejemplo: this.dialog.open(AssignUserDialogComponent, { data: { projectId: this.projectId } });
     this.snackBar.open('Funcionalidad de asignar usuario aún no implementada', 'Cerrar', { duration: 3000 });
   }
 }

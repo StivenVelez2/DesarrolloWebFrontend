@@ -13,7 +13,7 @@ export const PAGES_ROUTE: Route[] = [
     component: UsersComponent,
     canActivate: [AdminGuard]
   },
-  /*{
+  {
     //esta es la ruta de los proyectos
     path: 'projects',
     component: ProjectsComponent
@@ -22,5 +22,5 @@ export const PAGES_ROUTE: Route[] = [
     //esta es la ruta de los detalles de los proyectos
     path: 'projects/detail/:id',
     component: ProjectDetailComponent
-  }*/
+  }
 ];
