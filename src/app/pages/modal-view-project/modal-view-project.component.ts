@@ -69,10 +69,11 @@ export class ModalViewProjectComponent implements OnInit {
     this.dialogRef.close();
   }
 
-  removeUser(user: any): void {
-    this.projectsService.removeUserFromProject(this.project.id, user.id).subscribe({
+  removeUser(userId: number): void {
+    if (!this.project) return;
+    this.projectsService.removeUserFromProject(this.project.id, userId).subscribe({
       next: () => {
-        this.loadUsers();
+        this.dataSource.data = this.dataSource.data.filter((user: any) => user.id !== userId);
       }
     });
   }

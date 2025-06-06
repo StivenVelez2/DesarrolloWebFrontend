@@ -61,7 +61,16 @@ export class ProjectsService {
 
   // Eliminar un usuario de un proyecto
   removeUserFromProject(projectId: number, userId: number): Observable<any> {
-    const endpoint = `${this.urlBaseServices}/api/v1/project/${projectId}/remove-user/${userId}`;
-    return this.http.delete<any>(endpoint);
-  }
+    const endpoint = `${this.urlBaseServices}/api/v1/project/disassociate`;
+
+    console.log('Desasociando usuario:', { project_id: projectId, user_id: userId });
+  
+    return this.http.delete<any>(endpoint, {
+      body: {
+        project_id: projectId,
+        user_id: userId
+      }
+    });
+  }  
 }
+
