@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
 import { MatDialogModule } from '@angular/material/dialog';
@@ -25,7 +25,7 @@ import { ProjectsService } from 'app/services/projects/projects.service';
   templateUrl: './modal-view-project.component.html',
   styleUrls: ['./modal-view-project.component.scss']
 })
-export class ModalViewProjectComponent implements OnInit {
+export class ModalViewProjectComponent implements OnInit, AfterViewInit {
   project: any;
   dataSource = new MatTableDataSource<any>();
   displayedColumns: string[] = ['nombre', 'correo', 'acciones'];
@@ -33,7 +33,7 @@ export class ModalViewProjectComponent implements OnInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) public data: any,
+    @Inject(MAT_DIALOG_DATA) public data: { project: any },
     private dialogRef: MatDialogRef<ModalViewProjectComponent>,
     private dialog: MatDialog,
     private projectsService: ProjectsService
@@ -44,24 +44,26 @@ export class ModalViewProjectComponent implements OnInit {
     this.loadUsers();
   }
 
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+  }
+
   loadUsers(): void {
     this.projectsService.getProjectById(this.project.id).subscribe({
       next: (res) => {
-        this.dataSource.data = res.project.usuarios || res.project.users || []; // <-- Aquí
-        this.dataSource.paginator = this.paginator;
+        const users = res.project.usuarios || res.project.users || [];
+        this.dataSource.data = users;
       }
     });
   }
 
-
-  openAssignUserModal(): void {
-    this.dialog.open(ModalAssignUsersProjectsComponent, {
-      width: '400px',
-      data: { projectId: this.project.id }
-    }).afterClosed().subscribe(result => {
-      if (result) {
-        this.loadUsers(); // Recarga los usuarios asignados si se asignó uno nuevo
-      }
+  openViewProjectModal(): void {
+    this.dialog.open(ModalViewProjectComponent, {
+      width: '900px', // o '95vw' para casi toda la pantalla
+      maxWidth: '95vw',
+      data: { project: this.project },
+      disableClose: true,
+      autoFocus: false
     });
   }
 

@@ -1,51 +1,46 @@
 .project-detail-container {
   padding: 24px;
   background-color: #f5f7fc;
-
-  .breadcrumb {
-    font-size: 14px;
-    margin-bottom: 16px;
-
-    .active {
-      font-weight: bold;
-    }
-  }
+  min-height: 100vh;
 
   .content-wrapper {
     display: flex;
-    flex-wrap: wrap;
     gap: 24px;
-  }
-
-  .info-card, .users-card {
-    flex: 1;
-    min-width: 300px;
-    background: white;
-    padding: 16px;
-    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 12px;
+    align-items: flex-start;
+    flex-wrap: nowrap;
+    width: 100%;
   }
 
   .info-card {
+    flex: 0 0 320px; // ancho fijo menor
+    min-width: 260px;
     max-width: 350px;
+    background: white;
+    padding: 20px;
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    height: fit-content;
   }
 
   .users-card {
-    flex: 2;
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-
-    .custom-table {
-      width: 100%;
-    }
+    flex: 1;
+    background: white;
+    padding: 20px;
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    min-width: 320px; // menor que antes
   }
 
-  .actions {
-    margin-top: 24px;
+  // ...el resto igual...
+
+  @media (max-width: 900px) {
+    .content-wrapper {
+      flex-direction: column;
+      gap: 16px;
+    }
+    .info-card, .users-card {
+      min-width: unset;
+      width: 100%;
+    }
   }
 }

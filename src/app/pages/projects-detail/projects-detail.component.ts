@@ -16,19 +16,27 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { MatCard } from '@angular/material/card';
+import { ModalAssignUsersProjectsComponent } from '../modal-assign-users-projects/modal-assign-users-projects.component';
+import { ModalViewProjectComponent } from '../modal-view-project/modal-view-project.component';
 
+// Interfaces corregidas para coincidir con los nombres usados en HTML
 interface Project {
   id: number;
-  name: string;
-  description: string;
-  administrator: { name: string };
+  nombre: string;
+  descripcion: string;
+  administrador: {
+    nombre: string;
+    apellido: string;
+  };
   created_at: string;
 }
 
 interface ProjectUser {
   id: number;
-  name: string;
-  email: string;
+  nombre: string;
+  apellido: string;
+  correo: string;
 }
 
 @Component({
@@ -47,13 +55,14 @@ interface ProjectUser {
     MatTooltipModule,
     RouterModule,
     FormsModule,
+    MatCard,
   ],
 })
 export class ProjectDetailComponent implements OnInit, AfterViewInit {
   projectId!: number;
   project!: Project;
   dataSource = new MatTableDataSource<ProjectUser>([]);
-  displayedColumns: string[] = ['name', 'email', 'action'];
+  displayedColumns: string[] = ['nombre', 'correo', 'acciones'];
   isLoading = false;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -85,9 +94,10 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   loadProjectDetails(): void {
     this.isLoading = true;
 
+    // Obtener detalles del proyecto
     this.projectsService.getProjectById(this.projectId).subscribe({
-      next: (res) => {
-        this.project = res ?? {} as Project;
+      next: (res: Project) => {
+        this.project = res;
       },
       error: () => {
         this.snackBar.open('Error al cargar el proyecto', 'Cerrar', { duration: 3000 });
@@ -95,8 +105,9 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       }
     });
 
+    // Obtener usuarios asignados
     this.projectsService.getProjectById(this.projectId).subscribe({
-      next: (res) => {
+      next: (res: ProjectUser[]) => {
         this.dataSource.data = res;
         this.isLoading = false;
       },
@@ -122,6 +133,31 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   }
 
   openAssignUserDialog(): void {
-    this.snackBar.open('Funcionalidad de asignar usuario aún no implementada', 'Cerrar', { duration: 3000 });
+    const dialogRef = this.dialog.open(ModalAssignUsersProjectsComponent, {
+      width: '600px',
+      data: { projectId: this.projectId }
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result === 'refresh') {
+        this.loadProjectDetails();
+      }
+    });
+  }
+
+  openViewProjectModal(): void {
+    this.dialog.open(ModalViewProjectComponent, {
+      width: '900px',
+      maxWidth: '95vw',
+      data: { project: this.project }, // ✅ corregido
+      disableClose: true,
+      autoFocus: false
+    });
+  }
+
+
+
+  closeModal(): void {
+    this.router.navigate(['/page/projects']);
   }
 }

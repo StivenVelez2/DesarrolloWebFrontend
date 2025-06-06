@@ -1,97 +1,101 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatIconModule } from '@angular/material/icon';
-import { HttpClientModule } from '@angular/common/http';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { SelectionModel } from '@angular/cdk/collections';
 import { UsersService } from 'app/services/users/users.service';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatSpinner } from '@angular/material/progress-spinner';
 import { ProjectsService } from '../../services/projects/projects.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatCardModule } from '@angular/material/card';
 
 @Component({
   selector: 'app-modal-assign-users-projects',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
     MatDialogModule,
     MatButtonModule,
-    MatSelectModule,
-    MatIconModule,
-    MatFormFieldModule,
-    MatInputModule,
-    HttpClientModule,
-    MatSpinner,
+    MatTableModule,
+    MatPaginatorModule,
+    MatCheckboxModule,
+    MatCardModule
   ],
   templateUrl: './modal-assign-users-projects.component.html',
   styleUrls: ['./modal-assign-users-projects.component.scss']
 })
 export class ModalAssignUsersProjectsComponent implements OnInit {
-  assignForm!: FormGroup;
-  users: any[] = [];
+  displayedColumns: string[] = ['select', 'nombre', 'correo'];
+  dataSource = new MatTableDataSource<any>([]);
+  selection = new SelectionModel<any>(true, []);
   isLoading = false;
   isAssigning = false;
 
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: { projectId: number },
-    private readonly fb: FormBuilder,
-    private readonly dialogRef: MatDialogRef<ModalAssignUsersProjectsComponent>,
-    private readonly _userService: UsersService,
-    private readonly _snackBar: MatSnackBar,
-    private readonly _ProjectsService: ProjectsService
+    private dialogRef: MatDialogRef<ModalAssignUsersProjectsComponent>,
+    private _userService: UsersService,
+    private _snackBar: MatSnackBar,
+    private _ProjectsService: ProjectsService
   ) {}
 
   ngOnInit(): void {
-    this.createAssignForm();
     this.loadUsers();
-  }
-
-  createAssignForm(): void {
-    this.assignForm = this.fb.group({
-      user_id: ['', Validators.required]
-    });
   }
 
   loadUsers(): void {
     this.isLoading = true;
     this._userService.getAllUsersByAdministrator().subscribe({
       next: (res) => {
-        this.users = res.users || res;
+        this.dataSource.data = res.users || res;
+        this.dataSource.paginator = this.paginator;
         this.isLoading = false;
       },
-      error: (err) => {
+      error: () => {
         this.isLoading = false;
-        console.error('Error al obtener usuarios', err);
         this._snackBar.open('No se pudieron cargar los usuarios', 'Cerrar', { duration: 5000 });
       }
     });
   }
 
-  assignUser(): void {
-    if (this.assignForm.invalid || this.isAssigning) return;
+  toggleAllRows(event: any) {
+    if (event.checked) {
+      this.selection.select(...this.dataSource.data);
+    } else {
+      this.selection.clear();
+    }
+  }
 
+  toggleRow(row: any) {
+    this.selection.toggle(row);
+  }
+
+  isAllSelected() {
+    const numSelected = this.selection.selected.length;
+    const numRows = this.dataSource.data.length;
+    return numSelected === numRows;
+  }
+
+  assignSelectedUsers(): void {
+    if (this.selection.isEmpty() || this.isAssigning) return;
     this.isAssigning = true;
-    const IdUsuario = this.assignForm.value.user_id;
-    const IdProyecto = this.data.projectId;
-
-    this._ProjectsService.assignUserToProject(IdProyecto, IdUsuario)
-      .subscribe({
-        next: () => {
-          this._snackBar.open('Usuario asignado correctamente', 'Cerrar', { duration: 3000 });
-          this.dialogRef.close(true);
-        },
-        error: (err) => {
-          this.isAssigning = false;
-          let msg = 'No se pudo asignar el usuario';
-          if (err?.error?.message) msg = err.error.message;
-          this._snackBar.open(msg, 'Cerrar', { duration: 5000 });
-        }
+    const requests = this.selection.selected.map(user =>
+      this._ProjectsService.assignUserToProject(this.data.projectId, user.id)
+    );
+    Promise.all(requests.map(req => req.toPromise()))
+      .then(() => {
+        this._snackBar.open('Usuarios asignados correctamente', 'Cerrar', { duration: 3000 });
+        this.dialogRef.close(true);
+      })
+      .catch(() => {
+        this._snackBar.open('Error al asignar usuarios', 'Cerrar', { duration: 5000 });
+      })
+      .finally(() => {
+        this.isAssigning = false;
       });
   }
 

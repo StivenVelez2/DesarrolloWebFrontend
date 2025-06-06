@@ -1,3 +1,5 @@
+
+<!-- HTML -->
 <div class="project-detail-container">
   <!-- Encabezado de navegación -->
   <nav class="breadcrumb">
@@ -11,17 +13,31 @@
     <!-- Información del proyecto -->
     <mat-card class="info-card">
       <h3>Información del proyecto</h3>
-      <p><strong>Nombre</strong><br>{{ project.nombre }}</p>
-      <p><strong>Descripción</strong><br>{{ project.descripcion }}</p>
-      <p><strong>Administrador</strong><br>{{ project.administrador?.nombre }} {{ project.administrador?.apellido }}</p>
-      <p><strong>Fecha de creación</strong><br>{{ project.created_at | date:'dd/MM/yyyy HH:mm' }}</p>
+      <div class="info-item">
+        <strong>Nombre</strong>
+        <p>{{ project.nombre }}</p>
+      </div>
+      <div class="info-item">
+        <strong>Descripción</strong>
+        <p>{{ project.descripcion }}</p>
+      </div>
+      <div class="info-item">
+        <strong>Administrador</strong>
+        <p>{{ project.administrador?.nombre }} {{ project.administrador?.apellido }}</p>
+      </div>
+      <div class="info-item">
+        <strong>Fecha de creación</strong>
+        <p>{{ project.created_at | date:'dd/MM/yyyy HH:mm' }}</p>
+      </div>
     </mat-card>
 
     <!-- Usuarios asignados -->
     <mat-card class="users-card">
       <div class="header">
         <h3>Usuarios asignados</h3>
-        <button mat-raised-button color="primary" (click)="openAssignUserModal()">Asignar nuevo usuario</button>
+        <button mat-raised-button color="primary" (click)="openViewProjectModal()">
+          Asignar nuevo usuario
+        </button>
       </div>
 
       <table mat-table [dataSource]="dataSource" class="mat-elevation-z1 custom-table">
