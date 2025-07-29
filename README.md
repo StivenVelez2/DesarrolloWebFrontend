@@ -1,4 +1,4 @@
-# Admin Access Project - Frontend
+# Desarrollo Web Frontend
 
 Este proyecto es un frontend desarrollado en **Angular 18** que forma parte de un sistema de administración de usuarios y proyectos. Utiliza Angular Material, Bootstrap, y varias bibliotecas avanzadas para ofrecer una experiencia rica e interactiva.
 
